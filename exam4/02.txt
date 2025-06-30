@@ -1,0 +1,11 @@
+@Log4j2
+@Controller
+public class DeptController {
+//        서비스 가져오기
+        @Autowired
+        private DeptService deptService; 
+...
+}
+
+1.컨트롤러니까@Controller 추가
+2. 인터페이스인 DeptService를 자식클래스를 자동으로 대입해 바로 사용할수 있도록 @Autowired 를 추가
