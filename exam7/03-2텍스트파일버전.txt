@@ -1,0 +1,44 @@
+# TODO: 오라클 -> 엘라스틱서치 데이터 전송
+# TODO: 1) 입력: 오라클 데이터 수집
+# 필요: 라이브러리: ojdbc11.jar
+input {
+    jdbc {
+        # 오라클 연결
+        jdbc_driver_library => "C:/Work/10_Elastic_Search/chap12/ojdbc11.jar" # 라이브러리 경로
+        jdbc_driver_class => "Java::oracle.jdbc.driver.OracleDriver"          # 오라클 클래스
+        jdbc_connection_string => "jdbc:oracle:thin:@localhost:1521:xe"       # 오라클 접속정보
+        jdbc_user => "scott"                                                  # 오라클 계정
+        jdbc_password => "!Ds1234567890"                                      # 오라클 암호
+
+        # SQL 작성: 데이터 수집
+       statement => "
+        select qno, questioner, question,
+        answer, answerer,
+        insert_time, update_time 
+        from tb_qna
+        "
+
+        # 스케줄 걸기: 1분마다 실행: 크론잡 표현식(변경분만 실행: 최적화됨)
+        # * : 매시, 매분, 매일 등
+        # 크론잡 표현식 사용법: "분 시 일 월 요일"
+        schedule => "* * * * *"
+    }
+}
+
+# TODO: 2) 가공: 데이터 수집된것을 변형 또는 변경(생략)
+filter {
+    mutate {
+        remove_field => ["@version", "@timestamp"]
+    }
+}
+# TODO: 3) 출력: 엘라스틱서치 출력
+# TODO: 인덱스 없이(dept2) 복제하기
+output {
+    # 엘라스틱서치 연결
+    elasticsearch {
+        hosts => ["http://localhost:9200"] # 엘라스틱서치 db 주소
+        index => "qna"                   # 인덱스명(테이블명) 넣기
+        document_id => "%{qno}"            # 문서id를 dno 로 사용하겠음
+    }
+    stdout { codec => json_lines }         # 진행사항(성공,실패)을 명령프롬프트에 출력
+}

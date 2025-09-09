@@ -1,0 +1,23 @@
+POST /employee/_search
+{
+  "size": 0,
+  "aggs": {
+    "by_dept": {
+      "terms": {
+        "field": "dno"
+      },
+      "aggs": {
+        "dept_salary_sum": {
+          "sum": {
+            "field": "salary"
+          }
+        }
+      }
+    },
+    "total_salary_sum": {
+      "sum_bucket": {
+        "buckets_path": "by_dept>dept_salary_sum"
+      }
+    }
+  }
+}
